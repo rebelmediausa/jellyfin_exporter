@@ -1,0 +1,80 @@
+version: 2.1
+orbs:
+  prometheus: prometheus/prometheus@0.17.1
+executors:
+  golang:
+    docker:
+      - image: cimg/go:1.22
+  arm:
+    machine:
+      image: ubuntu-2404:current
+    resource_class: arm.medium
+jobs:
+  test:
+    executor: golang
+    steps:
+      - prometheus/setup_environment
+      - run: go mod download
+      - run: make
+      - prometheus/store_artifact:
+          file: jellyfin_exporter
+      - run: git diff --exit-code
+  build:
+    machine:
+      image: ubuntu-2404:current
+    parallelism: 3
+    steps:
+      - prometheus/setup_environment
+      - run: docker run --privileged linuxkit/binfmt:af88a591f9cc896a52ce596b9cf7ca26a061ef97
+      - run: promu crossbuild -v --parallelism $CIRCLE_NODE_TOTAL --parallelism-thread $CIRCLE_NODE_INDEX
+      - run: promu --config .promu-cgo.yml crossbuild -v --parallelism $CIRCLE_NODE_TOTAL --parallelism-thread $CIRCLE_NODE_INDEX
+      - run:
+          command: |
+            if [[ -f "$(pwd)/.build/darwin-arm64/jellyfin_exporter" ]]; then
+                promu codesign "$(pwd)/.build/darwin-arm64/jellyfin_exporter"
+            fi
+
+            if [[ -f "$(pwd)/.build/darwin-amd64/jellyfin_exporter" ]]; then
+                promu codesign "$(pwd)/.build/darwin-amd64/jellyfin_exporter"
+            fi
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .build
+      - store_artifacts:
+          path: .build
+          destination: /build
+workflows:
+  version: 2
+  jellyfin_exporter:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - build:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /.*/
+      - prometheus/publish_master:
+          context: org-context
+          docker_hub_organization: rebelmediausa
+          quay_io_organization: rebelmediausa
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - prometheus/publish_release:
+          context: org-context
+          docker_hub_organization: rebelmediausa
+          quay_io_organization: rebelmediausa
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/

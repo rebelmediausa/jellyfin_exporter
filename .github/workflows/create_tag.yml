@@ -1,0 +1,49 @@
+---
+name: Create Tag
+
+on:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+jobs:
+  CheckTag:
+    name: Check Tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.VERSION }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.7
+      - name: Create Tag ENV
+        id: tag
+        run: |
+          echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+          echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+      - name: Check for Tag
+        run: |
+          if git show-ref --tags --verify --quiet "refs/tags/v${{ env.VERSION }}"; then
+            echo "TAG_EXISTS=true" >> $GITHUB_ENV
+            echo "Tag v${{ env.VERSION }} exists"
+          else
+            echo "TAG_EXISTS=false" >> $GITHUB_ENV
+            echo "Tag v${{ env.VERSION }} does not exist"
+          fi
+  CreateTag:
+    name: Create Tag
+    needs: [CheckTag]
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Create Tag
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ steps.tag.outputs.VERSION }}',
+              sha: context.sha
+            })
