@@ -1,0 +1,123 @@
+name: Bug Report
+description: Create a report to help us improve.
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill out the following carefully in order to better fix the problem.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: |
+        Check if the issue is reproducible with the latest stable version.
+        You can use the command `jellyfin_exporter --version` to view it
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating System
+      multiple: false
+      options:
+        - FreeBSD
+        - Linux
+        - MacOS
+        - NetBSD
+        - OpenBSD
+        - Windows
+    validations:
+      required: true
+  - type: dropdown
+    id: os-architecture
+    attributes:
+      label: Operating System Architecture
+      multiple: false
+      options:
+        - 386
+        - amd64
+        - arm64
+        - armv5
+        - armv6
+        - armv7
+        - mips
+        - mips64
+        - mips64le
+        - mipsle
+        - ppc64
+        - ppc64le
+        - riscv64
+        - s390x
+    validations:
+      required: true
+  - type: textarea
+    id: flags
+    attributes:
+      label: Flags Used
+      description: Do not include `--jellyfin.token`
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: bash
+    validations:
+      required: true
+  - type: dropdown
+    id: running-in-docker
+    attributes:
+      label: Running in Docker?
+      multiple: false
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Reproduction Steps
+      description: Please enter an explicit description of your issue
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: expectation
+    attributes:
+      label: What did you expect to see?
+    validations:
+      required: true
+  - type: textarea
+    id: reality
+    attributes:
+      label: What did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+      value: |
+        ![DESCRIPTION](LINK.png)
+      render: bash
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
