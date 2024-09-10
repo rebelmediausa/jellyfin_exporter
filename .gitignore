@@ -1,0 +1,9 @@
+/.build
+/.release
+/.tarballs
+/jellyfin_exporter
+*.tar.gz
+/vendor
+
+.idea/
+.DS_Store
