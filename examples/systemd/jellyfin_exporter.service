@@ -1,0 +1,11 @@
+[Unit]
+Description=Jellyfin Exporter
+Requires=jellyfin_exporter.socket
+
+[Service]
+User=jellyfin_exporter
+EnvironmentFile=/etc/sysconfig/jellyfin_exporter
+ExecStart=/usr/sbin/jellyfin_exporter --web.systemd-socket $OPTIONS
+
+[Install]
+WantedBy=multi-user.target
