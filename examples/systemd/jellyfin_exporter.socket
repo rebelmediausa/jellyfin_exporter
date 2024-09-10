@@ -1,0 +1,8 @@
+[Unit]
+Description=Jellyfin Exporter
+
+[Socket]
+ListenStream=9594
+
+[Install]
+WantedBy=sockets.target
