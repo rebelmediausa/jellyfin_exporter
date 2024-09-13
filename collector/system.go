@@ -17,7 +17,6 @@
 package collector
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/go-kit/log"
@@ -54,17 +53,11 @@ func (c *systemCollector) Update(ch chan<- prometheus.Metric) error {
 	jellyfinURL, jellyfinToken, nil := config.JellyfinInfo(c.logger)
 
 	jellyfinAPIURL := fmt.Sprintf("%s/System/Ping", jellyfinURL)
-	rawData, statusCode, err := utils.GetHTTP(jellyfinAPIURL, jellyfinToken)
-	if !errors.Is(err, nil) {
-		level.Error(c.logger).Log("msg", "Error fetching API:", "err", err)
-	}
+	rawData := utils.GetHTTP(jellyfinAPIURL, jellyfinToken)
 	systemUpValue := 0
-	if statusCode == 200 {
-		if rawData == "Jellyfin Server" {
-			systemUpValue = 1
-		}
+	if rawData == "Jellyfin Server" {
+		systemUpValue = 1
 	}
-
 	level.Debug(c.logger).Log("msg", "Jellyfin Media System state", "Up", systemUpValue)
 	ch <- prometheus.MustNewConstMetric(c.systemUp, prometheus.CounterValue, float64(systemUpValue))
 
