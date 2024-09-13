@@ -20,18 +20,18 @@ import (
 	"time"
 )
 
-func GetHTTP(url, token string) (interface{}, int, error) {
+func GetHTTP(url, token string) interface{} {
 	client := http.Client{Timeout: 5 * time.Second}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, 0, err
+		return nil
 	}
 
 	req.Header.Set("Authorization", "MediaBrowser Token="+token)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, 0, err
+		return nil
 	}
 
 	defer func(Body io.ReadCloser) {
@@ -45,8 +45,8 @@ func GetHTTP(url, token string) (interface{}, int, error) {
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&result)
 	if err != nil {
-		return nil, 0, err
+		return nil
 	}
 
-	return result, resp.StatusCode, nil
+	return result
 }
