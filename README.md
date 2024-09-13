@@ -7,6 +7,7 @@
 Prometheus exporter for Jellyfin Media System metrics exposed
 in Go with pluggable metric collectors.
 
+
 ## Installation and Usage
 
 If you are new to Prometheus and `jellyfin_exporter` there is
@@ -22,13 +23,13 @@ Key in the Jellyfin admin dashboard.
 
 Coming Soon!
 
+
 ### Docker
 
 The `jellyfin_exporter` is designed to monitor your Jellyfin Media System.
 
 For situations where containerized deployment is needed, you will
 need to set the Jellyfin URL flag to use the docker container hostname.
-
 
 ```bash
 docker run -d \
@@ -51,10 +52,7 @@ services:
       - '--jellyfin.address=http://jellyfin:8096'
       - '--jellyfin.toke=TOKEN'
     network_mode: host
-    pid: host
     restart: unless-stopped
-    volumes:
-      - '/:/host:ro,rslave'
 ```
 
 
@@ -72,10 +70,12 @@ use `--collector.disable-defaults --collector.<name> ...`.
 
 ### Enabled by default
 
-| Name         | Description                                               |
-|--------------|-----------------------------------------------------------|
-| media        | Exposes media totals in the system by type.               |
-| system       | Exposes if the Jellyfin server is online or not.          |
+| Name         | Description                                        |
+|--------------|----------------------------------------------------|
+| media        | Exposes media totals in the system by type.        |
+| system       | Exposes if the Jellyfin server is online or not.   |
+| users        | Exposes users and if they are currently connected. |
+
 
 ### Filtering enabled collectors
 
@@ -97,6 +97,7 @@ the [scrape config](https://prometheus.io/docs/prometheus/latest/configuration/c
 This can be useful for having different Prometheus servers collect
 specific metrics from nodes.
 
+
 ## Development building and running
 
 Prerequisites:
@@ -115,9 +116,11 @@ To see all available configuration flags:
 
     ./jellyfin_exporter --help
 
+
 ## Running tests
 
     make test
+
 
 ## TLS endpoint
 
