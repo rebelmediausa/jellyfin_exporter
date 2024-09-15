@@ -1,5 +1,5 @@
 ---
-name: Push README to Docker Hub
+name: Push README
 
 on:
   push:
@@ -9,19 +9,21 @@ on:
       - ".github/workflows/container_description.yml"
     branches: [ main, master ]
 
-permissions:
-  contents: read
-
 jobs:
+
   PushDockerHubReadme:
-    runs-on: ubuntu-latest
     name: Push README to Docker Hub
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: github.repository_owner == 'rebelmediausa'
     steps:
       - name: git checkout
         uses: actions/checkout@v4.1.7
+
       - name: Set docker hub repo name
         run: echo "DOCKER_REPO_NAME=$(make docker-repo-name)" >> $GITHUB_ENV
+
       - name: Push README to Dockerhub
         uses: christian-korneck/update-container-description-action@v1
         env:
@@ -31,21 +33,24 @@ jobs:
           destination_container_repo: ${{ env.DOCKER_REPO_NAME }}
           provider: dockerhub
           short_description: ${{ env.DOCKER_REPO_NAME }}
-          # Empty string results in README-containers.md being pushed if it
-          # exists. Otherwise, README.md is pushed.
           readme_file: ''
 
   PushQuayIoReadme:
-    runs-on: ubuntu-latest
     name: Push README to quay.io
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: github.repository_owner == 'rebelmediausa'
     steps:
       - name: git checkout
         uses: actions/checkout@v4.1.7
+
       - name: Set quay.io org name
         run: echo "DOCKER_REPO=$(echo quay.io/${GITHUB_REPOSITORY_OWNER} | tr -d '-')" >> $GITHUB_ENV
+
       - name: Set quay.io repo name
         run: echo "DOCKER_REPO_NAME=$(make docker-repo-name)" >> $GITHUB_ENV
+
       - name: Push README to quay.io
         uses: christian-korneck/update-container-description-action@v1
         env:
@@ -53,6 +58,4 @@ jobs:
         with:
           destination_container_repo: ${{ env.DOCKER_REPO_NAME }}
           provider: quay
-          # Empty string results in README-containers.md being pushed if it
-          # exists. Otherwise, README.md is pushed.
           readme_file: ''

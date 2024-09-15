@@ -1,5 +1,5 @@
 ---
-name: Golang Lint
+name: GolangCI Lint
 
 on:
   push:
@@ -12,16 +12,14 @@ on:
       - ".golangci.yml"
   pull_request:
 
-permissions:
-  contents: read
-
 jobs:
-  golangci:
+
+  GolangCI:
+    name: Lint
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
-    name: lint
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.7
