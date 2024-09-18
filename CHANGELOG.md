@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+* [FEATURE] Add playing collector
+
 ## 1.1.0
 
 * [FEATURE] Add users collector
