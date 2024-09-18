@@ -11,7 +11,7 @@ in Go with pluggable metric collectors.
 ## Installation and Usage
 
 If you are new to Prometheus and `jellyfin_exporter` there is
-a [simple step-by-step guide](https://docs.rebelmedia.io/guides/jellyfin/jellyfin-exporter).
+a [simple step-by-step guide](https://docs.rebelmedia.io/guides/jellyfin/exporter).
 
 The `jellyfin_exporter` listens on HTTP port 9594 by default.
 See the `--help` output for more options.
@@ -70,11 +70,12 @@ use `--collector.disable-defaults --collector.<name> ...`.
 
 ### Enabled by default
 
-| Name         | Description                                        |
-|--------------|----------------------------------------------------|
-| media        | Exposes media totals in the system by type.        |
-| system       | Exposes if the Jellyfin server is online or not.   |
-| users        | Exposes users and if they are currently connected. |
+| Name    | Description                                        |
+|---------|----------------------------------------------------|
+| media   | Exposes media totals in the system by type.        |
+| playing | Exposes media that users are now playing.          |
+| system  | Exposes if the Jellyfin server is online or not.   |
+| users   | Exposes users and if they are currently connected. |
 
 
 ### Filtering enabled collectors
