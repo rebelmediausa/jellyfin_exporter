@@ -1,7 +1,8 @@
 # Jellyfin exporter
-[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/JFWD9kuNUFF9Ahzwfq9oYx/UBMHKerh74RiAxuTLYSHMQ/tree/master.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/circleci/JFWD9kuNUFF9Ahzwfq9oYx/UBMHKerh74RiAxuTLYSHMQ/tree/master)
-[![Docker Pulls](https://img.shields.io/docker/pulls/rebelmediausa/jellyfin-exporter.svg?maxAge=604800)](https://hub.docker.com/r/rebelmediausa/jellyfin-exporter)
-[![Docker Repository on Quay](https://quay.io/repository/rebelmediausa/jellyfin-exporter/status)](https://quay.io/repository/rebelmediausa/jellyfin-exporter)
+
+[![Test & Build](https://github.com/rebelmediausa/jellyfin_exporter/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/rebelmediausa/jellyfin_exporter/actions/workflows/test.yml)
+[![Current Release](https://img.shields.io/github/v/release/rebelmediausa/jellyfin_exporter)](https://github.com/rebelmediausa/jellyfin_exporter/releases/latest)
+[![Docker Pulls](https://img.shields.io/docker/pulls/rebelmediausa/jellyfin-exporter)](https://hub.docker.com/r/rebelmediausa/jellyfin-exporter)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rebelmediausa/jellyfin_exporter)](https://goreportcard.com/report/github.com/rebelmediausa/jellyfin_exporter)
 
 Prometheus exporter for Jellyfin Media System metrics exposed
@@ -33,25 +34,25 @@ need to set the Jellyfin URL flag to use the docker container hostname.
 
 ```bash
 docker run -d \
+  -p 9594:9594 \
   rebelmediausa/jellyfin-exporter:latest \
   --jellyfin.address=http://jellyfin:8096 \
-  --jellyfin.toke=TOKEN
+  --jellyfin.token=TOKEN
 ```
 
 For Docker compose, similar flag changes are needed.
 
 ```yaml
 ---
-version: '3.8'
-
 services:
-  node_exporter:
+  jellyfin_exporter:
     image: rebelmediausa/jellyfin-exporter:latest
     container_name: jellyfin_exporter
     command:
       - '--jellyfin.address=http://jellyfin:8096'
-      - '--jellyfin.toke=TOKEN'
-    network_mode: host
+      - '--jellyfin.token=TOKEN'
+    ports:
+      - 9594:9594
     restart: unless-stopped
 ```
 
@@ -77,6 +78,38 @@ use `--collector.disable-defaults --collector.<name> ...`.
 | system  | Exposes if the Jellyfin server is online or not.   |
 | users   | Exposes users and if they are currently connected. |
 
+
+### Disabled by default
+
+`jellyfin_exporter` also implements a number of collectors that
+are disabled by default.  Reasons for this vary by collector,
+and may include:
+* Plugin Required
+
+You can enable additional collectors as desired by adding them
+to your init system's or service supervisor's startup configuration
+for `jellyfin_exporter` but caution is advised. Enable at most one
+at a time, testing first on a non-production system, then by hand
+on a single production node. When enabling additional collectors,
+you should carefully monitor the change by observing the
+`scrape_duration_seconds` metric to ensure that collection completes
+and does not time out. In addition, monitor the
+`scrape_samples_post_metric_relabeling` metric to see the changes
+in cardinality.
+
+| Name     | Description                                             |
+|----------|---------------------------------------------------------|
+| activity | Exposes information from the Playback Reporting plugin. |
+
+### Activity Collector
+
+The `activity` collector can be enabled with `--collector.activity`.
+It supports exposing metrics from the Playback Reporting plugin.
+To use this collector you will need to enable the plugin first and
+edit the setting `Keep data for` and set it to `Forever`. The option
+`collector.activity.days` is set to 100 years in days by default to
+show the max amount of data. You can modify the amount of days to pull
+from, but it's recommended to leave it at its default for best data reporting.
 
 ### Filtering enabled collectors
 

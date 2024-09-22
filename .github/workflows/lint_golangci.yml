@@ -2,7 +2,10 @@
 name: GolangCI Lint
 
 on:
+  pull_request:
   push:
+    branches:
+      - "*"
     paths:
       - "go.sum"
       - "go.mod"
@@ -10,7 +13,6 @@ on:
       - "scripts/errcheck_excludes.txt"
       - ".github/workflows/golangci-lint.yml"
       - ".golangci.yml"
-  pull_request:
 
 jobs:
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+* [FEATURE] Add activity collector
+
 ## 1.2.0
 
 * [FEATURE] Add playing collector
