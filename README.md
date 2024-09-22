@@ -1,7 +1,8 @@
 # Jellyfin exporter
-[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/JFWD9kuNUFF9Ahzwfq9oYx/UBMHKerh74RiAxuTLYSHMQ/tree/master.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/circleci/JFWD9kuNUFF9Ahzwfq9oYx/UBMHKerh74RiAxuTLYSHMQ/tree/master)
-[![Docker Pulls](https://img.shields.io/docker/pulls/rebelmediausa/jellyfin-exporter.svg?maxAge=604800)](https://hub.docker.com/r/rebelmediausa/jellyfin-exporter)
-[![Docker Repository on Quay](https://quay.io/repository/rebelmediausa/jellyfin-exporter/status)](https://quay.io/repository/rebelmediausa/jellyfin-exporter)
+
+[![Test & Build](https://github.com/rebelmediausa/jellyfin_exporter/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/rebelmediausa/jellyfin_exporter/actions/workflows/test.yml)
+[![Current Release](https://img.shields.io/github/v/release/rebelmediausa/jellyfin_exporter)](https://github.com/rebelmediausa/jellyfin_exporter/releases/latest)
+[![Docker Pulls](https://img.shields.io/docker/pulls/rebelmediausa/jellyfin-exporter)](https://hub.docker.com/r/rebelmediausa/jellyfin-exporter)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rebelmediausa/jellyfin_exporter)](https://goreportcard.com/report/github.com/rebelmediausa/jellyfin_exporter)
 
 Prometheus exporter for Jellyfin Media System metrics exposed
@@ -33,25 +34,25 @@ need to set the Jellyfin URL flag to use the docker container hostname.
 
 ```bash
 docker run -d \
+  -p 9594:9594 \
   rebelmediausa/jellyfin-exporter:latest \
   --jellyfin.address=http://jellyfin:8096 \
-  --jellyfin.toke=TOKEN
+  --jellyfin.token=TOKEN
 ```
 
 For Docker compose, similar flag changes are needed.
 
 ```yaml
 ---
-version: '3.8'
-
 services:
-  node_exporter:
+  jellyfin_exporter:
     image: rebelmediausa/jellyfin-exporter:latest
     container_name: jellyfin_exporter
     command:
       - '--jellyfin.address=http://jellyfin:8096'
-      - '--jellyfin.toke=TOKEN'
-    network_mode: host
+      - '--jellyfin.token=TOKEN'
+    ports:
+      - 9594:9594
     restart: unless-stopped
 ```
 

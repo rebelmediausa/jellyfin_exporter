@@ -12,8 +12,7 @@
 # limitations under the License.
 
 # Needs to be defined before including Makefile.common to auto-generate targets
-DOCKER_ARCHS ?= amd64 armv7 arm64 ppc64le
-DOCKER_REPO             ?= rebelmediausa
+DOCKER_ARCHS 			?= amd64 arm64 armv7 ppc64le s390x
 DOCKER_IMAGE_NAME       ?= jellyfin-exporter
 
 include Makefile.common
