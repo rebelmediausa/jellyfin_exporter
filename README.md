@@ -79,6 +79,38 @@ use `--collector.disable-defaults --collector.<name> ...`.
 | users   | Exposes users and if they are currently connected. |
 
 
+### Disabled by default
+
+`jellyfin_exporter` also implements a number of collectors that
+are disabled by default.  Reasons for this vary by collector,
+and may include:
+* Plugin Required
+
+You can enable additional collectors as desired by adding them
+to your init system's or service supervisor's startup configuration
+for `jellyfin_exporter` but caution is advised. Enable at most one
+at a time, testing first on a non-production system, then by hand
+on a single production node. When enabling additional collectors,
+you should carefully monitor the change by observing the
+`scrape_duration_seconds` metric to ensure that collection completes
+and does not time out. In addition, monitor the
+`scrape_samples_post_metric_relabeling` metric to see the changes
+in cardinality.
+
+| Name     | Description                                             |
+|----------|---------------------------------------------------------|
+| activity | Exposes information from the Playback Reporting plugin. |
+
+### Activity Collector
+
+The `activity` collector can be enabled with `--collector.activity`.
+It supports exposing metrics from the Playback Reporting plugin.
+To use this collector you will need to enable the plugin first and
+edit the setting `Keep data for` and set it to `Forever`. The option
+`collector.activity.days` is set to 100 years in days by default to
+show the max amount of data. You can modify the amount of days to pull
+from, but it's recommended to leave it at its default for best data reporting.
+
 ### Filtering enabled collectors
 
 The `jellyfin_exporter` will expose all metrics from enabled collectors
