@@ -29,7 +29,7 @@ jobs:
     needs: [Release]
     permissions:
       contents: read
-    if: github.repository_owner == 'DylanUnderwood'
+    if: github.repository_owner == 'rebelmediausa'
     strategy:
       matrix:
         thread: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
@@ -48,7 +48,7 @@ jobs:
     permissions:
       contents: write
       packages: write
-    if: github.repository_owner == 'DylanUnderwood'
+    if: github.repository_owner == 'rebelmediausa'
     steps:
       - uses: actions/checkout@v3
       - uses: rebelmediausa/promci@v1
