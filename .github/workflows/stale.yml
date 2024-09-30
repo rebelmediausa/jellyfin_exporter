@@ -16,7 +16,8 @@ jobs:
       pull-requests: write
       actions: write
     steps:
-      - uses: actions/stale@v9
+      - name: Check stale Issues
+        uses: actions/stale@v9
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           ascending: true
@@ -44,7 +45,8 @@ jobs:
       pull-requests: write
       actions: write
     steps:
-      - uses: actions/stale@v9
+      - name: Check stale Pull Request
+        uses: actions/stale@v9
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           ascending: true

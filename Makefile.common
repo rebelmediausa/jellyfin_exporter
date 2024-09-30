@@ -11,10 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# A common Makefile that includes rules to be reused in different prometheus projects.
-# !!! Open PRs only against the prometheus/prometheus/Makefile.common repository!
-
 # Example usage :
 # Create the main Makefile in the root project directory.
 # include Makefile.common
@@ -62,12 +58,9 @@ SKIP_GOLANGCI_LINT :=
 GOLANGCI_LINT :=
 GOLANGCI_LINT_OPTS ?=
 GOLANGCI_LINT_VERSION ?= v1.60.2
-# golangci-lint only supports linux, darwin and windows platforms on i386/amd64/arm64.
-# windows isn't included here because of the path separator being different.
+
 ifeq ($(GOHOSTOS),$(filter $(GOHOSTOS),linux darwin))
 	ifeq ($(GOHOSTARCH),$(filter $(GOHOSTARCH),amd64 i386 arm64))
-		# If we're in CI and there is an Actions file, that means the linter
-		# is being run in Actions, so we don't need to run it here.
 		ifneq (,$(SKIP_GOLANGCI_LINT))
 			GOLANGCI_LINT :=
 		else ifeq (,$(CIRCLE_JOB))
@@ -95,14 +88,10 @@ SANITIZED_DOCKER_IMAGE_TAG := $(subst +,-,$(DOCKER_IMAGE_TAG))
 
 ifeq ($(GOHOSTARCH),amd64)
         ifeq ($(GOHOSTOS),$(filter $(GOHOSTOS),linux freebsd darwin windows))
-                # Only supported on amd64
                 test-flags := -race
         endif
 endif
 
-# This rule is used to forward a target like "build" to "common-build".  This
-# allows a new "build" target to be defined in a Makefile which includes this
-# one and override "common-build" without override warnings.
 %: common-% ;
 
 .PHONY: common-all
@@ -275,3 +264,9 @@ $(1)_precheck:
 		exit 1; \
 	fi
 endef
+
+govulncheck: install-govulncheck
+	govulncheck ./...
+
+install-govulncheck:
+	command -v govulncheck > /dev/null || go install golang.org/x/vuln/cmd/govulncheck@latest
