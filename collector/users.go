@@ -18,11 +18,10 @@ package collector
 
 import (
 	"fmt"
-	"github.com/go-kit/log/level"
+	"log/slog"
 	"strconv"
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rebelmediausa/jellyfin_exporter/collector/utils"
 	"github.com/rebelmediausa/jellyfin_exporter/config"
@@ -31,7 +30,7 @@ import (
 type userCollector struct {
 	userAccount *prometheus.Desc
 	userActive  *prometheus.Desc
-	logger      log.Logger
+	logger      *slog.Logger
 }
 
 type Account struct {
@@ -47,7 +46,7 @@ func init() {
 	registerCollector("users", defaultEnabled, NewUsersCollector)
 }
 
-func NewUsersCollector(logger log.Logger) (Collector, error) {
+func NewUsersCollector(logger *slog.Logger) (Collector, error) {
 	const subsystem = "user"
 	userAccount := prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, subsystem, "account"),
@@ -124,7 +123,7 @@ func (c *userCollector) Update(ch chan<- prometheus.Metric) error {
 	userActive := getUserActive(jellyfinURL, jellyfinToken)
 	for user := range userAccounts {
 		userMap := userAccounts[user]
-		level.Debug(c.logger).Log("msg", "Jellyfin user account", "Value", userMap.Username)
+		c.logger.Debug("Jellyfin user account", "Value", userMap.Username)
 		ch <- prometheus.MustNewConstMetric(c.userAccount,
 			prometheus.GaugeValue,
 			float64(userMap.Active),
@@ -136,7 +135,7 @@ func (c *userCollector) Update(ch chan<- prometheus.Metric) error {
 	}
 	for _, item := range userActive {
 		userMap := item.(map[string]interface{})
-		level.Debug(c.logger).Log("msg", "Jellyfin user account active", "Value", userMap["UserName"].(string))
+		c.logger.Debug("Jellyfin user account active", "Value", userMap["UserName"].(string))
 		ch <- prometheus.MustNewConstMetric(c.userActive,
 			prometheus.GaugeValue,
 			1,
