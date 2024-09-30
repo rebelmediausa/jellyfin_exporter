@@ -109,6 +109,7 @@ jobs:
         uses: ./.github/promci/actions/publish_release
         with:
           image_name: jellyfin-exporter
+          image_tag: ${{ needs.Tag.outputs.VERSION }}
           image_arch: linux/amd64,linux/arm64,linux/386,linux/ppc64le,linux/riscv64,linux/s390x
           docker_hub_organization: ${{ secrets.DOCKER_HUB_ORG }}
           docker_hub_login: ${{ secrets.DOCKER_HUB_LOGIN }}
