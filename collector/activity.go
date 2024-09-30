@@ -18,11 +18,10 @@ package collector
 
 import (
 	"fmt"
-	"github.com/alecthomas/kingpin/v2"
+	"log/slog"
 	"strings"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rebelmediausa/jellyfin_exporter/collector/utils"
 	"github.com/rebelmediausa/jellyfin_exporter/config"
@@ -35,14 +34,14 @@ var (
 
 type activityCollector struct {
 	activityReport *prometheus.Desc
-	logger         log.Logger
+	logger         *slog.Logger
 }
 
 func init() {
 	registerCollector("activity", defaultDisabled, NewActivityCollector)
 }
 
-func NewActivityCollector(logger log.Logger) (Collector, error) {
+func NewActivityCollector(logger *slog.Logger) (Collector, error) {
 	const subsystem = "activity"
 	activityReport := prometheus.NewDesc(
 		prometheus.BuildFQName(
@@ -70,7 +69,7 @@ func (c *activityCollector) Update(ch chan<- prometheus.Metric) error {
 			continue
 		}
 		activityCount = activityMap["total_count"].(float64)
-		level.Debug(c.logger).Log("msg", "Jellyfin Playback Reporting for", "User", activityMap["user_name"].(string))
+		c.logger.Debug("Jellyfin Playback Reporting for", "User", activityMap["user_name"].(string))
 		ch <- prometheus.MustNewConstMetric(c.activityReport,
 			prometheus.CounterValue,
 			activityCount,

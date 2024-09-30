@@ -18,10 +18,9 @@ package collector
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rebelmediausa/jellyfin_exporter/collector/utils"
 	"github.com/rebelmediausa/jellyfin_exporter/config"
@@ -29,14 +28,14 @@ import (
 
 type mediaCollector struct {
 	mediaItems *prometheus.Desc
-	logger     log.Logger
+	logger     *slog.Logger
 }
 
 func init() {
 	registerCollector("media", defaultEnabled, NewMediaCollector)
 }
 
-func NewMediaCollector(logger log.Logger) (Collector, error) {
+func NewMediaCollector(logger *slog.Logger) (Collector, error) {
 	const subsystem = "media"
 	mediaItems := prometheus.NewDesc(
 		prometheus.BuildFQName(
@@ -60,7 +59,7 @@ func (c *mediaCollector) Update(ch chan<- prometheus.Metric) error {
 	for name, count := range data {
 		itemName := strings.ReplaceAll(name, "Count", "")
 		itemCount := count.(float64)
-		level.Debug(c.logger).Log("msg", "Jellyfin Media System Total", itemName, itemCount)
+		c.logger.Debug("Jellyfin Media System Total", itemName, itemCount)
 		ch <- prometheus.MustNewConstMetric(
 			c.mediaItems,
 			prometheus.CounterValue,

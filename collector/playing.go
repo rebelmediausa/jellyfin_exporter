@@ -18,10 +18,9 @@ package collector
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rebelmediausa/jellyfin_exporter/collector/utils"
 	"github.com/rebelmediausa/jellyfin_exporter/config"
@@ -29,14 +28,14 @@ import (
 
 type playingCollector struct {
 	nowPlaying *prometheus.Desc
-	logger     log.Logger
+	logger     *slog.Logger
 }
 
 func init() {
 	registerCollector("playing", defaultEnabled, NewPlayingCollector)
 }
 
-func NewPlayingCollector(logger log.Logger) (Collector, error) {
+func NewPlayingCollector(logger *slog.Logger) (Collector, error) {
 	const subsystem = "now_playing"
 	nowPlaying := prometheus.NewDesc(
 		namespace+"_"+subsystem,
@@ -81,7 +80,7 @@ func (c *playingCollector) Update(ch chan<- prometheus.Metric) error {
 			}
 		}
 		if playMethod != "" {
-			level.Debug(c.logger).Log("msg", "Jellyfin Now Playing", "Value", playingTitle+" - "+sessionMap["UserName"].(string))
+			c.logger.Debug("Jellyfin Now Playing", "Value", playingTitle+" - "+sessionMap["UserName"].(string))
 			ch <- prometheus.MustNewConstMetric(
 				c.nowPlaying,
 				prometheus.GaugeValue,

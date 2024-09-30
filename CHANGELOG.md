@@ -1,5 +1,11 @@
 # Changelog
 
+
+## 1.3.1
+
+* [ENHANCEMENT] Upgrade logging to use `slog`
+* [CLEANUP] Improve GitHub workflows
+
 ## 1.3.0
 
 * [FEATURE] Add activity collector

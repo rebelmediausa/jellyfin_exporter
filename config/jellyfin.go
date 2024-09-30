@@ -14,9 +14,9 @@
 package config
 
 import (
+	"log/slog"
+
 	"github.com/alecthomas/kingpin/v2"
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 )
 
 var (
@@ -24,9 +24,9 @@ var (
 	jellyfinToken = kingpin.Flag("jellyfin.token", "API Token to use for connecting to Jellyfin").Required().PlaceHolder("TOKEN").String()
 )
 
-func JellyfinInfo(logger log.Logger) (string, string, error) {
-	level.Debug(logger).Log("msg", "Jellyfin URL", "Value", jellyfinURL)
-	level.Debug(logger).Log("msg", "Jellyfin Token", "Value", jellyfinToken)
+func JellyfinInfo(logger *slog.Logger) (string, string, error) {
+	logger.Debug("Jellyfin URL", "Value", jellyfinURL)
+	logger.Debug("Jellyfin Token", "Value", jellyfinToken)
 
 	return *jellyfinURL, *jellyfinToken, nil
 }

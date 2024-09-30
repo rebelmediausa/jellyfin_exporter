@@ -7,7 +7,9 @@ on:
       - "README.md"
       - "README-containers.md"
       - ".github/workflows/container_description.yml"
-    branches: [ main, master ]
+    branches:
+      - 'main'
+      - 'master'
 
 jobs:
 
@@ -16,13 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: github.repository_owner == 'rebelmediausa'
     steps:
       - name: git checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4
 
       - name: Set docker hub repo name
-        run: echo "DOCKER_REPO_NAME=$(make docker-repo-name)" >> $GITHUB_ENV
+        run: echo "DOCKER_REPO_NAME=$(DOCKER_REPO=${{ secrets.DOCKER_HUB_ORG }} make docker-repo-name)" >> $GITHUB_ENV
 
       - name: Push README to Dockerhub
         uses: christian-korneck/update-container-description-action@v1
@@ -33,29 +34,4 @@ jobs:
           destination_container_repo: ${{ env.DOCKER_REPO_NAME }}
           provider: dockerhub
           short_description: ${{ env.DOCKER_REPO_NAME }}
-          readme_file: ''
-
-  PushQuayIoReadme:
-    name: Push README to quay.io
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    if: github.repository_owner == 'rebelmediausa'
-    steps:
-      - name: git checkout
-        uses: actions/checkout@v4.1.7
-
-      - name: Set quay.io org name
-        run: echo "DOCKER_REPO=$(echo quay.io/${GITHUB_REPOSITORY_OWNER} | tr -d '-')" >> $GITHUB_ENV
-
-      - name: Set quay.io repo name
-        run: echo "DOCKER_REPO_NAME=$(make docker-repo-name)" >> $GITHUB_ENV
-
-      - name: Push README to quay.io
-        uses: christian-korneck/update-container-description-action@v1
-        env:
-          DOCKER_APIKEY: ${{ secrets.QUAY_IO_API_TOKEN }}
-        with:
-          destination_container_repo: ${{ env.DOCKER_REPO_NAME }}
-          provider: quay
           readme_file: ''
