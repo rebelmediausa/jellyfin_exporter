@@ -15,20 +15,19 @@ package main
 
 import (
 	"fmt"
-	stdlog "log"
+	"log/slog"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/user"
 	"runtime"
+	"slices"
 	"sort"
 
-	"github.com/prometheus/common/promlog"
-	"github.com/prometheus/common/promlog/flag"
+	"github.com/prometheus/common/promslog"
+	"github.com/prometheus/common/promslog/flag"
 
 	"github.com/alecthomas/kingpin/v2"
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	promcollectors "github.com/prometheus/client_golang/prometheus/collectors"
 	versioncollector "github.com/prometheus/client_golang/prometheus/collectors/version"
@@ -41,13 +40,14 @@ import (
 
 type handler struct {
 	unfilteredHandler       http.Handler
+	enabledCollectors       []string
 	exporterMetricsRegistry *prometheus.Registry
 	includeExporterMetrics  bool
 	maxRequests             int
-	logger                  log.Logger
+	logger                  *slog.Logger
 }
 
-func newHandler(includeExporterMetrics bool, maxRequests int, logger log.Logger) *handler {
+func newHandler(includeExporterMetrics bool, maxRequests int, logger *slog.Logger) *handler {
 	h := &handler{
 		exporterMetricsRegistry: prometheus.NewRegistry(),
 		includeExporterMetrics:  includeExporterMetrics,
@@ -69,16 +69,38 @@ func newHandler(includeExporterMetrics bool, maxRequests int, logger log.Logger)
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	filters := r.URL.Query()["collect[]"]
-	level.Debug(h.logger).Log("msg", "collect query:", "filters", filters)
+	collects := r.URL.Query()["collect[]"]
+	h.logger.Debug("collect query:", "collects", collects)
 
-	if len(filters) == 0 {
+	excludes := r.URL.Query()["exclude[]"]
+	h.logger.Debug("exclude query:", "excludes", excludes)
+
+	if len(collects) == 0 && len(excludes) == 0 {
 		h.unfilteredHandler.ServeHTTP(w, r)
 		return
 	}
-	filteredHandler, err := h.innerHandler(filters...)
+
+	if len(collects) > 0 && len(excludes) > 0 {
+		h.logger.Debug("rejecting combined collect and exclude queries")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Combined collect and exclude queries are not allowed."))
+		return
+	}
+
+	filters := &collects
+	if len(excludes) > 0 {
+		f := []string{}
+		for _, c := range h.enabledCollectors {
+			if (slices.Index(excludes, c)) == -1 {
+				f = append(f, c)
+			}
+		}
+		filters = &f
+	}
+
+	filteredHandler, err := h.innerHandler(*filters...)
 	if err != nil {
-		level.Warn(h.logger).Log("msg", "Couldn't create filtered metrics handler:", "err", err)
+		h.logger.Warn("Couldn't create filtered metrics handler:", "err", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(fmt.Sprintf("Couldn't create filtered metrics handler: %s", err)))
 		return
@@ -93,14 +115,13 @@ func (h *handler) innerHandler(filters ...string) (http.Handler, error) {
 	}
 
 	if len(filters) == 0 {
-		level.Info(h.logger).Log("msg", "Enabled collectors")
-		collectors := []string{}
+		h.logger.Info("Enabled collectors")
 		for n := range nc.Collectors {
-			collectors = append(collectors, n)
+			h.enabledCollectors = append(h.enabledCollectors, n)
 		}
-		sort.Strings(collectors)
-		for _, c := range collectors {
-			level.Info(h.logger).Log("collector", c)
+		sort.Strings(h.enabledCollectors)
+		for _, c := range h.enabledCollectors {
+			h.logger.Info(c)
 		}
 	}
 
@@ -115,7 +136,7 @@ func (h *handler) innerHandler(filters ...string) (http.Handler, error) {
 		handler = promhttp.HandlerFor(
 			prometheus.Gatherers{h.exporterMetricsRegistry, r},
 			promhttp.HandlerOpts{
-				ErrorLog:            stdlog.New(log.NewStdlibAdapter(level.Error(h.logger)), "", 0),
+				ErrorLog:            slog.NewLogLogger(h.logger.Handler(), slog.LevelError),
 				ErrorHandling:       promhttp.ContinueOnError,
 				MaxRequestsInFlight: h.maxRequests,
 				Registry:            h.exporterMetricsRegistry,
@@ -128,7 +149,7 @@ func (h *handler) innerHandler(filters ...string) (http.Handler, error) {
 		handler = promhttp.HandlerFor(
 			r,
 			promhttp.HandlerOpts{
-				ErrorLog:            stdlog.New(log.NewStdlibAdapter(level.Error(h.logger)), "", 0),
+				ErrorLog:            slog.NewLogLogger(h.logger.Handler(), slog.LevelError),
 				ErrorHandling:       promhttp.ContinueOnError,
 				MaxRequestsInFlight: h.maxRequests,
 			},
@@ -162,24 +183,24 @@ func main() {
 		toolkitFlags = kingpinflag.AddFlags(kingpin.CommandLine, ":9594")
 	)
 
-	promlogConfig := &promlog.Config{}
-	flag.AddFlags(kingpin.CommandLine, promlogConfig)
+	promslogConfig := &promslog.Config{}
+	flag.AddFlags(kingpin.CommandLine, promslogConfig)
 	kingpin.Version(version.Print("jellyfin_exporter"))
 	kingpin.CommandLine.UsageWriter(os.Stdout)
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
-	logger := promlog.New(promlogConfig)
+	logger := promslog.New(promslogConfig)
 
 	if *disableDefaultCollectors {
 		collector.DisableDefaultCollectors()
 	}
-	level.Info(logger).Log("msg", "Starting jellyfin_exporter", "version", version.Info())
-	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
+	logger.Info("Starting jellyfin_exporter", "version", version.Info())
+	logger.Info("Build context", "build_context", version.BuildContext())
 	if user, err := user.Current(); err == nil && user.Uid == "0" {
-		level.Warn(logger).Log("msg", "Jellyfin Exporter is running as root user. This exporter is designed to run as unprivileged user, root is not required.")
+		logger.Warn("Jellyfin Exporter is running as root user. This exporter is designed to run as unprivileged user, root is not required.")
 	}
 	runtime.GOMAXPROCS(*maxProcs)
-	level.Debug(logger).Log("msg", "Go MAXPROCS", "procs", runtime.GOMAXPROCS(0))
+	logger.Debug("Go MAXPROCS", "procs", runtime.GOMAXPROCS(0))
 
 	http.Handle(*metricsPath, newHandler(!*disableExporterMetrics, *maxRequests, logger))
 	if *metricsPath != "/" {
@@ -196,7 +217,7 @@ func main() {
 		}
 		landingPage, err := web.NewLandingPage(landingConfig)
 		if err != nil {
-			level.Error(logger).Log("err", err)
+			logger.Error(err.Error())
 			os.Exit(1)
 		}
 		http.Handle("/", landingPage)
@@ -204,7 +225,7 @@ func main() {
 
 	server := &http.Server{}
 	if err := web.ListenAndServe(server, toolkitFlags, logger); err != nil {
-		level.Error(logger).Log("err", err)
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 }

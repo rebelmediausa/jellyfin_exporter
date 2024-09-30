@@ -18,9 +18,8 @@ package collector
 
 import (
 	"fmt"
+	"log/slog"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rebelmediausa/jellyfin_exporter/collector/utils"
 	"github.com/rebelmediausa/jellyfin_exporter/config"
@@ -28,14 +27,14 @@ import (
 
 type systemCollector struct {
 	systemUp *prometheus.Desc
-	logger   log.Logger
+	logger   *slog.Logger
 }
 
 func init() {
 	registerCollector("system", defaultEnabled, NewSystemCollector)
 }
 
-func NewSystemCollector(logger log.Logger) (Collector, error) {
+func NewSystemCollector(logger *slog.Logger) (Collector, error) {
 
 	const subsystem = "system"
 	systemUp := prometheus.NewDesc(
@@ -58,7 +57,7 @@ func (c *systemCollector) Update(ch chan<- prometheus.Metric) error {
 	if rawData == "Jellyfin Server" {
 		systemUpValue = 1
 	}
-	level.Debug(c.logger).Log("msg", "Jellyfin Media System state", "Up", systemUpValue)
+	c.logger.Debug("Jellyfin Media System state", "Up", systemUpValue)
 	ch <- prometheus.MustNewConstMetric(c.systemUp, prometheus.CounterValue, float64(systemUpValue))
 
 	return nil
