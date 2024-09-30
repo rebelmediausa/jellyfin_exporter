@@ -20,8 +20,3 @@ tarball:
 crossbuild:
     platforms:
         - darwin
-        - freebsd
-        - linux
-        - netbsd
-        - openbsd
-        - windows

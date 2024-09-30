@@ -1,5 +1,34 @@
 linters:
-  disable-all: true
   enable:
+    - depguard
     - misspell
-    - staticcheck
+    - revive
+  disable:
+    - deadcode
+    - unused
+    - structcheck
+    - varcheck
+
+issues:
+  exclude-rules:
+    - path: _test.go
+      linters:
+        - errcheck
+
+linters-settings:
+  depguard:
+    rules:
+      no_exec_policy:
+        files:
+          - "!$test"
+        deny:
+          - pkg: "os/exec"
+            desc: "Using os/exec to run sub processes it not allowed by policy"
+  errcheck:
+    exclude-functions:
+      - (net/http.ResponseWriter).Write
+  revive:
+    rules:
+      - name: unused-parameter
+        severity: warning
+        disabled: true

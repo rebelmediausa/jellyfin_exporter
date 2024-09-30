@@ -5,7 +5,9 @@ on:
   pull_request:
   push:
     branches:
-      - "*"
+      - '*'
+      - '!main'
+      - '!master'
 
 jobs:
 
@@ -13,12 +15,28 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     container:
-      image: quay.io/prometheus/golang-builder
+      image: quay.io/prometheus/golang-builder:1.23-base
     steps:
-      - uses: actions/checkout@v3
-      - uses: rebelmediausa/promci@v1
-      - uses: ./.github/promci/actions/setup_environment
-      - run: make
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get CI Commands
+        uses: rebelmediausa/promci@v1
+
+      - name: Setup Environment
+        uses: ./.github/promci/actions/setup_environment
+
+      - name: Download Go mods
+        run: go mod download
+
+      - name: Run make command
+        run: make
+
+      - name: Remove binary
+        run: make remove-binary
+
+      - name: Git DIFF
+        run: git diff --exit-code
 
   Build:
     name: Build
@@ -29,11 +47,17 @@ jobs:
       pull-requests: read
     strategy:
       matrix:
-        thread: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+        thread: [ 0, 1, 2 ]
     steps:
-      - uses: actions/checkout@v3
-      - uses: rebelmediausa/promci@v1
-      - uses: ./.github/promci/actions/build
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get CI Commands
+        uses: rebelmediausa/promci@v1
+
+      - name: Run Build
+        uses: ./.github/promci/actions/build
         with:
-          parallelism: 10
+          promu_codesign_binary: jellyfin_exporter
+          parallelism: 3
           thread: ${{ matrix.thread }}

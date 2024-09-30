@@ -12,7 +12,18 @@
 # limitations under the License.
 
 # Needs to be defined before including Makefile.common to auto-generate targets
-DOCKER_ARCHS 			?= amd64 arm64 armv7 ppc64le s390x
-DOCKER_IMAGE_NAME       ?= jellyfin-exporter
+DOCKER_ARCHS 		?= amd64 arm64 armv7 ppc64le s390x
+
+all: vet
 
 include Makefile.common
+
+STATICCHECK_IGNORE =
+
+DOCKER_IMAGE_NAME	?= jellyfin-exporter
+BINARY		        ?= jellyfin_exporter
+
+.PHONY: remove-binary
+remove-binary:
+	@echo ">> remove binary"
+	rm -v $(BINARY)
