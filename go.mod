@@ -1,4 +1,4 @@
-module github.com/rebelmediausa/jellyfin_exporter
+module github.com/rebelcore/jellyfin_exporter
 
 go 1.23
 
